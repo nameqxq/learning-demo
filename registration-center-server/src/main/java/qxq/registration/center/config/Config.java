@@ -10,7 +10,7 @@ import lombok.Data;
  **/
 @Data
 public class Config {
-    private String zkService;
+    private String zkServers;
 
     private String basePath;
 
