@@ -19,11 +19,11 @@ import java.util.concurrent.CountDownLatch;
  * @date 2019/3/8 17:34
  **/
 @Slf4j
-public class ZooInit {
+public class ZooHolder {
     private ZooKeeper zooKeeper;
     private Config config;
 
-    public ZooInit(Config config) {
+    public ZooHolder(Config config) {
         this.config = config;
         init();
     }
@@ -46,9 +46,9 @@ public class ZooInit {
     private void listener() {
         try {
 
-            Stat stat = zooKeeper.exists(config.getBasePath(), new ZooDispatchWatch());
+            Stat stat = zooKeeper.exists(config.getBasePath(), new ZooDispatchWatch(this));
             if (stat == null) {
-                zooKeeper.create(config.getBasePath(), "".getBytes(), null, CreateMode.PERSISTENT);
+                zooKeeper.create(config.getBasePath(), "...".getBytes(), null, CreateMode.PERSISTENT);
             }
         } catch (KeeperException | InterruptedException e) {
             e.printStackTrace();
@@ -56,4 +56,11 @@ public class ZooInit {
 
     }
 
+    public ZooKeeper getZooKeeper() {
+        return zooKeeper;
+    }
+
+    public Config getConfig() {
+        return config;
+    }
 }
