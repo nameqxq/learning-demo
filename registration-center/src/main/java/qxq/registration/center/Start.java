@@ -21,7 +21,7 @@ public class Start {
         serviceInfo.setModule("testService");
         serviceInfo.setIp(HostUtil.localHostAddr());
         serviceInfo.setPort("8888");
-        RegistrationConfiguration.generate(config, serviceInfo);
+        RegistrationConfiguration.generate(config, serviceInfo).start();
 
         LockSupport.park(new Object());
     }

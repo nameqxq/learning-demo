@@ -1,4 +1,4 @@
-package qxq.registration.center.zoo.watch;
+package qxq.registration.center.zoo.official;
 
 import lombok.extern.slf4j.Slf4j;
 import org.apache.zookeeper.KeeperException;
@@ -6,6 +6,7 @@ import org.apache.zookeeper.WatchedEvent;
 import org.apache.zookeeper.Watcher;
 import org.apache.zookeeper.ZooKeeper;
 import qxq.registration.center.common.RegistrationConfiguration;
+import qxq.registration.center.listener.ServicesChangeListenerHodler;
 
 import java.util.List;
 
@@ -16,16 +17,23 @@ import java.util.List;
  * @date 2019/3/8 17:49
  **/
 @Slf4j
-public class ZooDefaultWatch implements Watcher {
+public class ZookeeperDefaultWatch implements Watcher {
+
+    private final ZooKeeper zooKeeper;
+    private final ServicesChangeListenerHodler servicesChangeListenerHodler;
+
+    public ZookeeperDefaultWatch(ZooKeeper zooKeeper, ServicesChangeListenerHodler servicesChangeListenerHodler) {
+        this.zooKeeper = zooKeeper;
+        this.servicesChangeListenerHodler = servicesChangeListenerHodler;
+    }
 
     @Override
     public void process(WatchedEvent event) {
         log.info("zookeeper watch ... {}", event);
-        ZooKeeper zooKeeper = RegistrationConfiguration.instance().getZooKeeper();
         try {
             List<String> children =
                     zooKeeper.getChildren(RegistrationConfiguration.instance().getConfig().getBasePath(), this);
-            RegistrationConfiguration.instance().setServices(children);
+            servicesChangeListenerHodler.notifyListeners(children);
         } catch (KeeperException | InterruptedException e) {
             e.printStackTrace();
         }

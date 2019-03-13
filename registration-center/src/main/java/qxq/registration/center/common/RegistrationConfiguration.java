@@ -2,21 +2,17 @@ package qxq.registration.center.common;
 
 import com.alibaba.fastjson.JSONObject;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.zookeeper.*;
-import org.apache.zookeeper.data.Stat;
 import qxq.registration.center.exceptions.RegistrationException;
+import qxq.registration.center.listener.impl.DefaultServicesChangeListener;
 import qxq.registration.center.utils.UnmodifiableListCollector;
-import qxq.registration.center.zoo.watch.ZooDefaultWatch;
+import qxq.registration.center.zoo.ZooAdapter;
+import qxq.registration.center.zoo.official.ZookeeperAdapter;
 
-import java.io.IOException;
 import java.util.*;
-import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.stream.Collectors;
-
-import static qxq.registration.center.consts.CommonConst.DEFAULT_ZNODE_VALUE;
 
 /**
  * @author quxiqi
@@ -29,7 +25,7 @@ public class RegistrationConfiguration {
 
     private static RegistrationConfiguration instance;
 
-    public static void generate(Config config, ServiceInfo serviceInfo) {
+    public static RegistrationConfiguration generate(Config config, ServiceInfo serviceInfo) {
         if (instance != null) {
             throw new RegistrationException("不能重复创建 RegistrationConfiguration !");
         }
@@ -39,6 +35,7 @@ public class RegistrationConfiguration {
             }
             instance = new RegistrationConfiguration(config, serviceInfo);
         }
+        return instance;
     }
 
     public static RegistrationConfiguration instance() {
@@ -48,7 +45,7 @@ public class RegistrationConfiguration {
         return instance;
     }
 
-    private ZooKeeper zooKeeper;
+    private ZooAdapter zooAdapter = new ZookeeperAdapter();
     private Config config;
     private ServiceInfo serviceInfo;
     /**
@@ -76,8 +73,8 @@ public class RegistrationConfiguration {
         init();
     }
 
-    public ZooKeeper getZooKeeper() {
-        return zooKeeper;
+    public void start() {
+        zooAdapter.listener();
     }
 
     public Config getConfig() {
@@ -126,48 +123,12 @@ public class RegistrationConfiguration {
     }
 
     /**
-     * zk连接
+     * zk初始化
      */
     private void init() {
-        try {
-            CountDownLatch cdl = new CountDownLatch(1);
-            zooKeeper = new ZooKeeper(config.getZkServers(), config.getSessionTimeout(), event -> {
-                if (event.getState() == Watcher.Event.KeeperState.SyncConnected) {
-                    cdl.countDown();
-                }
-            });
-            cdl.await();
-            log.info("连接zookeeper成功...");
-            listener();
-        } catch (IOException | InterruptedException e) {
-            log.error("zookeeper初始化失败 --> zkServers: {}", config.getZkServers(),  e);
-        }
-    }
-
-    /**
-     *
-     */
-    private void listener() {
-        try {
-            // 创建根目录
-            Stat stat = zooKeeper.exists(config.getBasePath(), false);
-            if (stat == null) {
-                zooKeeper.create(config.getBasePath(), DEFAULT_ZNODE_VALUE,
-                        ZooDefs.Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT);
-            }
-
-            // 自注册
-            zooKeeper.create(serviceInfo.buildZnodePath(config.getBasePath()),
-                    DEFAULT_ZNODE_VALUE, ZooDefs.Ids.OPEN_ACL_UNSAFE, CreateMode.EPHEMERAL);
-
-            // 获取服务列表
-            List<String> children = zooKeeper.getChildren(config.getBasePath(), new ZooDefaultWatch());
-            setServices(children);
-
-        } catch (KeeperException | InterruptedException e) {
-            e.printStackTrace();
-        }
-
+        zooAdapter.init(config);
+        zooAdapter.register(serviceInfo);
+        zooAdapter.registerListener(new DefaultServicesChangeListener());
     }
 
 }
