@@ -6,8 +6,8 @@ package qxq.registration.center.exceptions;
  * @description
  * @date 2019/3/12 16:03
  **/
-public class RegistrationServerException extends RuntimeException{
-    public RegistrationServerException(String message) {
+public class RegistrationException extends RuntimeException{
+    public RegistrationException(String message) {
         super(message);
     }
 }

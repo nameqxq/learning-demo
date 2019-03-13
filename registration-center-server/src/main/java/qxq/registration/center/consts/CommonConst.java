@@ -13,4 +13,7 @@ public class CommonConst {
 
     public static final String NODE_NAME_SEPARATOR = "@#@";
     public static final int NODE_NAME_LENGTH = 3;
+
+
+    public static final byte[] DEFAULT_ZNODE_VALUE = "1".getBytes();
 }

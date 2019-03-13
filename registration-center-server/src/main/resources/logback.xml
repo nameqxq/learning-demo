@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration>
+
+    <!--<include resource="com/laimi/boot/logging/logback/base.xml" />-->
+
+    <appender name="file" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <file>logs/app.log</file>
+        <encoder class="ch.qos.logback.classic.encoder.PatternLayoutEncoder">
+            <pattern>%d{HH:mm:ss.SSS} [%.20thread] %-5level %.30logger - %msg%n</pattern>
+        </encoder>
+        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+            <FileNamePattern>logs/plugin-api.%d{yyyy-MM-dd}.log.gz</FileNamePattern>
+            <maxHistory>20</maxHistory>
+        </rollingPolicy>
+        <encoder>
+            <charset>UTF-8</charset>
+            <pattern>%d{HH:mm:ss.SSS} [%.20thread] %-5level %.30logger - %msg%n</pattern>
+        </encoder>
+    </appender>
+
+    <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
+        <encoder class="ch.qos.logback.classic.encoder.PatternLayoutEncoder">
+            <Pattern>%d{HH:mm:ss.SSS} [%.20thread] %-5level %.30logger - %msg%n</Pattern>
+        </encoder>
+    </appender>
+    <logger name="com.laimi" level="info"/>
+    <logger name="org.springframework" level="info"/>
+    <logger name="org.hibernate.SQL" level="info"/>
+    <logger name="org.hibernate.type" level="info"/>
+    <logger name="jdbc.resultset" level="warn"/>
+    <!--<logger name="jdbc.sqlonly" level="warn"/>-->
+    <root level="info">
+        <!--<appender-ref ref="FILE"/>-->
+        <!--<appender-ref ref="CONSOLE"/>-->
+        <appender-ref ref="file"/>
+        <appender-ref ref="STDOUT"/>
+    </root>
+</configuration>
