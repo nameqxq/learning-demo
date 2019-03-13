@@ -1,4 +1,4 @@
-package qxq.registration.center.config;
+package qxq.registration.center.common;
 
 import lombok.Data;
 
@@ -10,9 +10,9 @@ import lombok.Data;
  **/
 @Data
 public class Config {
-    private String zkServers;
+    private final String zkServers;
 
-    private String basePath;
+    private final String basePath;
 
-    private int sessionTimeout;
+    private final int sessionTimeout;
 }

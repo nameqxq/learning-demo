@@ -2,7 +2,6 @@ package qxq.registration.center.common;
 
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
-import qxq.registration.center.exceptions.RegistrationException;
 
 import static qxq.registration.center.consts.CommonConst.NODE_NAME_LENGTH;
 import static qxq.registration.center.consts.CommonConst.NODE_NAME_SEPARATOR;
@@ -28,7 +27,8 @@ public class ServiceInfo {
     public static ServiceInfo build(String str) {
         String[] split = str.split(NODE_NAME_SEPARATOR);
         if (split.length != NODE_NAME_LENGTH) {
-            throw new RegistrationException("注册格式错误 --> znode: " + str);
+           log.warn("注册格式错误 --> znode: " + str);
+           return null;
         }
         ServiceInfo serviceInfo = new ServiceInfo();
         serviceInfo.module = split[0];
