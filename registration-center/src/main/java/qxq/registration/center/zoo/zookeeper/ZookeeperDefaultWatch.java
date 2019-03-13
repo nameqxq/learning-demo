@@ -1,4 +1,4 @@
-package qxq.registration.center.zoo.official;
+package qxq.registration.center.zoo.zookeeper;
 
 import lombok.extern.slf4j.Slf4j;
 import org.apache.zookeeper.KeeperException;

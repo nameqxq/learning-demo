@@ -6,7 +6,7 @@ import qxq.registration.center.exceptions.RegistrationException;
 import qxq.registration.center.listener.impl.DefaultServicesChangeListener;
 import qxq.registration.center.utils.UnmodifiableListCollector;
 import qxq.registration.center.zoo.ZooAdapter;
-import qxq.registration.center.zoo.official.ZookeeperAdapter;
+import qxq.registration.center.zoo.zookeeper.ZookeeperAdapter;
 
 import java.util.*;
 import java.util.concurrent.locks.Lock;
