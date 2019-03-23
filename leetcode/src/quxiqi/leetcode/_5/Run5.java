@@ -13,7 +13,7 @@ public class Run5 {
     }
     public static void main(String[] args) {
         String s = "xasdad";
-        Func_5 func = new Func_5_2();
+        Func_5 func = new Func_5_3();
         String s1 = func.longestPalindrome(s);
         System.out.println(s1);
 

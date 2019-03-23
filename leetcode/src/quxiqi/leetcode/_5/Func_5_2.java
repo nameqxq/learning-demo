@@ -9,7 +9,6 @@ package quxiqi.leetcode._5;
 public class Func_5_2 implements Run5.Func_5{
     @Override
     public String longestPalindrome(String s) {
-        s = "aaaa";
         if (s.length() <= 1) {
             return s;
         }
