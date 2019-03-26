@@ -13,25 +13,27 @@ package quxiqi.leetcode._6;
 public class Func_6_1 implements Run6.Func_6{
     @Override
     public String convert(String s, int numRows) {
-        s = "PAYPALISHIRING";
-        numRows = 4;
-        int once = 2 * numRows - 1;
+        // s = "A";
+        // numRows = 1;
+        if (s.length() <= numRows || numRows == 1) {
+            return s;
+        }
+        int once = 2 * numRows - 2;
         StringBuilder[] t = new StringBuilder[numRows];
         for (int i = 0; i < t.length; i++) {
             t[i] = new StringBuilder();
         }
 
         char[] chars = s.toCharArray();
-        t[0].append(chars[0]);
-        for (int i = 1; i < chars.length; i++) {
+        for (int i = 0; i < chars.length; i++) {
             int remainder = i % once;
             if (remainder == 0) {
-                t[1].append(chars[i]);
+                t[0].append(chars[i]);
             } else if (remainder < numRows) {
                 t[remainder].append(chars[i]);
             } else {
                 int sub = remainder - numRows;
-                t[remainder - sub - 1].append(chars[i]);
+                t[numRows - sub - 2].append(chars[i]);
             }
         }
 
