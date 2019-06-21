@@ -35,6 +35,7 @@ public class Func_23_1 implements Run23.Func_23 {
             lists[minIndex] = lists[minIndex].next;
             currentNode.next.next = null;
             currentNode = currentNode.next;
+
         }
 
         return result.next;
