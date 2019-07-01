@@ -6,7 +6,7 @@ import java.util.Map;
 /**
  * @author quxiqi
  * @email quxiqi@zskuaixiao.com
- * @description  空间用得比较少。
+ * @description
  * @date 2019/7/1 17:13
  **/
 public class Func_7_1 implements Run7.Func_7 {

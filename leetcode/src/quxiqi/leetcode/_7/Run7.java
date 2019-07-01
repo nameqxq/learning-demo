@@ -12,9 +12,15 @@ public class Run7 {
     }
 
     public static void main(String[] args) {
-        Func_7 fun = new Func_7_1();
-        int i = fun.myAtoi("-5-");
+        // Func_7 fun = new Func_7_1();
+        Func_7 fun = new Func_7_2();
+        int i = fun.myAtoi("   -5-");
         System.out.println(i);
+        System.out.println((int)(' ') - 48);
+        System.out.println((int)('0') - 48);
+        System.out.println((int)('9') - 48);
+        System.out.println((int)('-') - 48);
+        System.out.println((int)('+') - 48);
         System.out.println(Integer.MAX_VALUE);
         System.out.println(Integer.MIN_VALUE);
     }
