@@ -50,6 +50,7 @@ public class RangeTest {
         disableTimeRanges.add(new TimeRange(150, 210));
         disableTimeRanges.add(new TimeRange(150, 250));
         disableTimeRanges.add(new TimeRange(0, 100));
+        disableTimeRanges.add(new TimeRange(400, 450));
 
         for (TimeRange disableTimeRange : disableTimeRanges) {
             for (List<TimeEnableDisableInfo> infos : enableTimeInfoGroup) {
@@ -65,6 +66,8 @@ public class RangeTest {
                         } else {
                             break;
                         }
+                    } else if (info.timestamp + interval > disableTimeRange.fromTimestamp){
+                        info.enable = false;
                     }
                 }
                 if (firstGreaterThanDisableFrom - 1 >= 0) {
