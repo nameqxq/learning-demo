@@ -3,7 +3,7 @@ package quxiqi.leetcode._10;
 /**
  * @author quxiqi
  * @email quxiqi@zskuaixiao.com
- * @description
+ * @description 这个实现看错题意了、、、、搞成 .匹配一个字符， * 0-n个字符
  * @date 2019/7/2 11:25
  **/
 public class Func_10_1 implements Run10.Func_10 {
@@ -23,14 +23,14 @@ public class Func_10_1 implements Run10.Func_10 {
         for (int i = 0; i < ps.length; i++) {
             char pi = ps[i];
             if (pi == '*') {
-                if (i - 1 > index) {
+                if (i - 1 >= index) {
                     psGroup[++psGroupIndex] = index;
                     psGroup[++psGroupIndex] = i - 1;
                 }
                 index = i + 1;
             }
         }
-        if (ps.length - 1 > index) {
+        if (ps.length - 1 >= index) {
             psGroup[++psGroupIndex] = index;
             psGroup[++psGroupIndex] = ps.length - 1;
         }

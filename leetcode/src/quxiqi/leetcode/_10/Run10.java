@@ -12,8 +12,8 @@ public class Run10 {
     }
 
     public static void main(String[] args) {
-        Func_10 fun = new Func_10_1();
-        boolean bol = fun.isMatch("a", "");
+        Func_10 fun = new Func_10_2();
+        boolean bol = fun.isMatch("a", "ab*");
         System.out.println(bol);
     }
 }
