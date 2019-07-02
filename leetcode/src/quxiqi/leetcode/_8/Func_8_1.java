@@ -1,4 +1,4 @@
-package quxiqi.leetcode._7;
+package quxiqi.leetcode._8;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -9,7 +9,7 @@ import java.util.Map;
  * @description
  * @date 2019/7/1 17:13
  **/
-public class Func_7_1 implements Run7.Func_7 {
+public class Func_8_1 implements Run8.Func_8 {
     Map<Character, Integer> map = new HashMap<>(16);
     {
         map.put('0', 0);

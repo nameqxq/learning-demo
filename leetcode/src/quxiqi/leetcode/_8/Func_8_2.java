@@ -1,4 +1,4 @@
-package quxiqi.leetcode._7;
+package quxiqi.leetcode._8;
 
 /**
  * @author quxiqi
@@ -6,7 +6,7 @@ package quxiqi.leetcode._7;
  * @description
  * @date 2019/7/1 17:58
  **/
-public class Func_7_2 implements Run7.Func_7 {
+public class Func_8_2 implements Run8.Func_8 {
 
     @Override
     public int myAtoi(String str) {
