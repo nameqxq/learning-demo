@@ -13,7 +13,18 @@ public class Run10 {
 
     public static void main(String[] args) {
         Func_10 fun = new Func_10_2();
-        boolean bol = fun.isMatch("a", "ab*");
+        boolean bol = fun.isMatch("list1", "ab*");
         System.out.println(bol);
+
+        int i = 100520124;
+        int count = 0;
+        while (i!=0) {
+            if (i%10 == 0) {
+                count++;
+            }
+            i = i/10;
+        }
+        System.out.println(count);
+        System.out.println(Math.round(-15.61));
     }
 }
