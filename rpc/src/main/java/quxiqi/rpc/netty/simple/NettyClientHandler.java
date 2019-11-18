@@ -1,4 +1,4 @@
-package quxiqi.rpc.netty;
+package quxiqi.rpc.netty.simple;
 
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;

@@ -1,4 +1,4 @@
-package quxiqi.rpc.netty;
+package quxiqi.rpc.netty.line;
 
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.channel.Channel;
@@ -7,6 +7,8 @@ import io.netty.channel.ChannelInitializer;
 import io.netty.channel.EventLoopGroup;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
+import io.netty.handler.codec.LineBasedFrameDecoder;
+import quxiqi.rpc.netty.NettyConst;
 
 import java.net.InetSocketAddress;
 
@@ -16,11 +18,9 @@ import java.net.InetSocketAddress;
  * @date : 2019/4/21 21:53.
  * @remark:
  */
-public class NettyServer {
-    private static final int PORT = 8888;
+public class NettyLineServer {
 
     public void start() {
-        NettyServerHandler handler = new NettyServerHandler();
         EventLoopGroup eventLoopGroup = new NioEventLoopGroup();
         try {
             ServerBootstrap b = new ServerBootstrap();
@@ -29,10 +29,10 @@ public class NettyServer {
                     .childHandler(new ChannelInitializer() {
                         @Override
                         protected void initChannel(Channel ch) {
-                            ch.pipeline().addLast(handler);
+                            ch.pipeline().addLast(new LineBasedFrameDecoder(1024)).addLast(new NettyServerLineHandler());
                         }
                     })
-                    .bind(new InetSocketAddress(PORT))
+                    .bind(new InetSocketAddress(NettyConst.PORT))
                     .sync();
             System.out.println("服务端启动成功!");
             future.channel().closeFuture().sync();
@@ -44,6 +44,6 @@ public class NettyServer {
     }
 
     public static void main(String[] args) {
-        new NettyServer().start();
+        new NettyLineServer().start();
     }
 }
