@@ -1,4 +1,5 @@
 @startuml
+' 以下为Pipeline相关
 interface ChannelPipeline {
 }
 class DefaultChannelPipeline {
@@ -7,30 +8,7 @@ class DefaultChannelPipeline {
     channel: Channel
 }
 DefaultChannelPipeline -up..|> ChannelPipeline
-together {
-    class ChannelPipeline
-    class DefaultChannelPipeline
-}
 
-
-interface Channel {
-}
-abstract class AbstractChannel {
-    DefaultChannelPipeline pipeline
-    Unsafe unsafe
-    EventLoop eventLoop
-}
-AbstractChannel -up..|> Channel
-DefaultChannelPipeline -left--o "pipeline" AbstractChannel
-class NioSocketChannel {
-}
-NioSocketChannel -up--|> AbstractChannel
-together {
-    class Channel
-    class AbstractChannel
-    class NioSocketChannel
-}
-NioSocketChannel -down--o "channel" DefaultChannelPipeline
 
 abstract class AbstractChannelHandlerContext {
     AbstractChannelHandlerContext prev
@@ -47,19 +25,17 @@ class DefaultChannelHandlerContext {
     ChannelHandler handler
 }
 DefaultChannelHandlerContext -up--|> AbstractChannelHandlerContext
-together {
-    class AbstractChannelHandlerContext
-    class DefaultChannelHandlerContext
-}
 
 interface ChannelHandler {
 }
+ChannelHandler -down--o DefaultChannelHandlerContext
+
 interface ChannelOutboundHandler {
 }
-ChannelOutboundHandler --|> ChannelHandler
+ChannelOutboundHandler -up--|> ChannelHandler
 interface ChannelInboundHandler {
 }
-ChannelInboundHandler --|> ChannelHandler
+ChannelInboundHandler -up--|> ChannelHandler
 class HeadContext {
     boolean outbound: true
     Unsafe unsafe
@@ -82,19 +58,104 @@ TailContext -down--|> ChannelOutboundHandler
 TailContext -down--o "tail" DefaultChannelPipeline
 DefaultChannelHandlerContext "next"-left-o TailContext
 TailContext "prev"-right-o DefaultChannelHandlerContext
-together {
-    class ChannelHandler
-    class ChannelInboundHandler
-    class ChannelOutboundHandler
+
+class CustomerInBoundChannelHandler {
 }
-
-class CustomerChannelHandler {
+CustomerOutBoundChannelHandler -up--|> ChannelInboundHandler
+class CustomerOutBoundChannelHandler {
 }
-CustomerChannelHandler -down--o DefaultChannelHandlerContext
-CustomerChannelHandler -down--|> ChannelInboundHandler
-CustomerChannelHandler -down--|> ChannelOutboundHandler
-
-'hide CustomerChannelHandler
+CustomerInBoundChannelHandler -up--|> ChannelOutboundHandler
+'以上为Pipeline相关
 
 
+'以下为Channel相关
+interface Channel {
+}
+abstract class AbstractChannel {
+    DefaultChannelPipeline pipeline
+    Unsafe unsafe
+    EventLoop eventLoop
+}
+AbstractChannel -up..|> Channel
+class NioSocketChannel {
+}
+NioSocketChannel -up--|> AbstractChannel
+
+
+DefaultChannelPipeline -left--o "pipeline" AbstractChannel
+Channel -left--o "channel" DefaultChannelPipeline
+'以上为Channel相关
+
+
+'以下为 EventLoop 相关
+interface EventExecutorGroup{
+    EventExecutor next();
+}
+interface EventExecutor{
+    EventExecutor next();
+    boolean inEventLoop()
+    boolean inEventLoop(Thread)
+}
+EventExecutor -up--|> EventExecutorGroup
+interface OrderedEventExecutor{
+}
+note right of OrderedEventExecutor: 标记接口
+OrderedEventExecutor -up--|> EventExecutor
+interface EventLoopGroup{
+    EventLoop next()
+}
+EventLoopGroup -up--|> EventExecutorGroup
+interface EventLoop{
+    EventLoopGroup parent()
+}
+EventLoop -up--|> EventLoopGroup
+abstract class MultithreadEventExecutorGroup {
+    EventExecutor[] children
+    EventExecutorChooserFactory.EventExecutorChooser chooser
+    EventExecutor newChild(...)
+    EventExecutor next()
+}
+note bottom of MultithreadEventExecutorGroup: 初始化的时候，调用newChild\r\n创建了eventLoop填充了children
+MultithreadEventExecutorGroup -up..|> EventExecutorGroup
+EventExecutor -right--o MultithreadEventExecutorGroup
+abstract class MultithreadEventLoopGroup {
+}
+MultithreadEventLoopGroup -up--|> MultithreadEventExecutorGroup
+MultithreadEventLoopGroup -up..|> EventLoopGroup
+class NioEventLoopGroup {
+    EventLoop newChild(...): NioEventLoop
+}
+note bottom of NioEventLoopGroup: newChild 创建NioEventLoop
+NioEventLoopGroup -up--|> MultithreadEventLoopGroup
+
+abstract class AbstractEventExecutor {
+    EventExecutorGroup parent
+}
+AbstractEventExecutor -up..|> EventExecutor
+class SingleThreadEventExecutor{
+    Queue<Runnable> taskQueue
+    Thread thread
+    int state
+    Executor executor:
+    void execute(Runnable)
+    void doStartThread()
+    void run()
+}
+note right of SingleThreadEventExecutor: 所有的任务都在一个线程中执行\r\n执行器默认为ThreadPerTaskExecutor\r\n第一次向该执行器提交任务(execute)时\r\n将会启动一个线程(doStartThread)\r\n并且调用run方法
+SingleThreadEventExecutor -up..|> OrderedEventExecutor
+SingleThreadEventExecutor -up--|> AbstractEventExecutor
+class SingleThreadEventLoop{
+}
+SingleThreadEventLoop -up--|> SingleThreadEventExecutor
+SingleThreadEventLoop -up..|> EventLoop
+
+class NioEventLoop {
+    Selector selector
+    SelectorProvider provider
+    void run()
+}
+note left of NioEventLoop: run方法中处理JDK-NIO\r\n读写连接等事件
+NioEventLoop -up--|> SingleThreadEventLoop
+EventLoop -right--o "eventLoop" AbstractChannel
+'以上为EventLoop相关
 @enduml
