@@ -74,6 +74,7 @@ HeadContext "next"-left-o DefaultChannelHandlerContext
 DefaultChannelHandlerContext "prev"-right-o HeadContext
 class TailContext {
     boolean inbound: true
+    void channelRead()
 }
 TailContext -up--|> AbstractChannelHandlerContext
 TailContext -down--|> ChannelInboundHandler
