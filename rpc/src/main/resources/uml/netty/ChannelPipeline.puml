@@ -1,0 +1,94 @@
+@startuml
+interface ChannelPipeline {
+}
+class DefaultChannelPipeline {
+    head: AbstractChannelHandlerContext
+    tail: AbstractChannelHandlerContext
+    channel: Channel
+}
+DefaultChannelPipeline -up..|> ChannelPipeline
+together {
+    class ChannelPipeline
+    class DefaultChannelPipeline
+}
+
+
+interface Channel {
+}
+abstract class AbstractChannel {
+    DefaultChannelPipeline pipeline
+    Unsafe unsafe
+    EventLoop eventLoop
+}
+AbstractChannel -up..|> Channel
+DefaultChannelPipeline -left--o "pipeline" AbstractChannel
+class NioSocketChannel {
+}
+NioSocketChannel -up--|> AbstractChannel
+together {
+    class Channel
+    class AbstractChannel
+    class NioSocketChannel
+}
+NioSocketChannel -down--o "channel" DefaultChannelPipeline
+
+abstract class AbstractChannelHandlerContext {
+    AbstractChannelHandlerContext prev
+    AbstractChannelHandlerContext next
+    DefaultChannelPipeline pipeline
+    boolean inbound
+    boolean outbound
+    AbstractChannelHandlerContext findContextInbound()
+    AbstractChannelHandlerContext findContextOutbound()
+}
+DefaultChannelPipeline -right--o "pipeline" AbstractChannelHandlerContext
+
+class DefaultChannelHandlerContext {
+    ChannelHandler handler
+}
+DefaultChannelHandlerContext -up--|> AbstractChannelHandlerContext
+together {
+    class AbstractChannelHandlerContext
+    class DefaultChannelHandlerContext
+}
+
+interface ChannelHandler {
+}
+interface ChannelOutboundHandler {
+}
+ChannelOutboundHandler --|> ChannelHandler
+interface ChannelInboundHandler {
+}
+ChannelInboundHandler --|> ChannelHandler
+class Head {
+}
+Head -up--|> AbstractChannelHandlerContext
+Head -down--|> ChannelInboundHandler
+Head -down--|> ChannelOutboundHandler
+Head -down--o "head" DefaultChannelPipeline
+Head "next"-left-o DefaultChannelHandlerContext
+DefaultChannelHandlerContext "prev"-right-o Head
+class Tail {
+}
+Tail -up--|> AbstractChannelHandlerContext
+Tail -down--|> ChannelInboundHandler
+Tail -down--|> ChannelOutboundHandler
+Tail -down--o "tail" DefaultChannelPipeline
+DefaultChannelHandlerContext "next"-left-o Tail
+Tail "prev"-right-o DefaultChannelHandlerContext
+together {
+    class ChannelHandler
+    class ChannelInboundHandler
+    class ChannelOutboundHandler
+}
+
+class CustomerChannelHandler {
+}
+CustomerChannelHandler -down--o DefaultChannelHandlerContext
+CustomerChannelHandler -down--|> ChannelInboundHandler
+CustomerChannelHandler -down--|> ChannelOutboundHandler
+
+'hide CustomerChannelHandler
+
+
+@enduml
