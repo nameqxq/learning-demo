@@ -60,22 +60,27 @@ ChannelOutboundHandler --|> ChannelHandler
 interface ChannelInboundHandler {
 }
 ChannelInboundHandler --|> ChannelHandler
-class Head {
+class HeadContext {
+    boolean outbound: true
+    Unsafe unsafe
+    void bind(...)
+    void connect(...)
 }
-Head -up--|> AbstractChannelHandlerContext
-Head -down--|> ChannelInboundHandler
-Head -down--|> ChannelOutboundHandler
-Head -down--o "head" DefaultChannelPipeline
-Head "next"-left-o DefaultChannelHandlerContext
-DefaultChannelHandlerContext "prev"-right-o Head
-class Tail {
+HeadContext -up--|> AbstractChannelHandlerContext
+HeadContext -down--|> ChannelInboundHandler
+HeadContext -down--|> ChannelOutboundHandler
+HeadContext -down--o "head" DefaultChannelPipeline
+HeadContext "next"-left-o DefaultChannelHandlerContext
+DefaultChannelHandlerContext "prev"-right-o HeadContext
+class TailContext {
+    boolean inbound: true
 }
-Tail -up--|> AbstractChannelHandlerContext
-Tail -down--|> ChannelInboundHandler
-Tail -down--|> ChannelOutboundHandler
-Tail -down--o "tail" DefaultChannelPipeline
-DefaultChannelHandlerContext "next"-left-o Tail
-Tail "prev"-right-o DefaultChannelHandlerContext
+TailContext -up--|> AbstractChannelHandlerContext
+TailContext -down--|> ChannelInboundHandler
+TailContext -down--|> ChannelOutboundHandler
+TailContext -down--o "tail" DefaultChannelPipeline
+DefaultChannelHandlerContext "next"-left-o TailContext
+TailContext "prev"-right-o DefaultChannelHandlerContext
 together {
     class ChannelHandler
     class ChannelInboundHandler
