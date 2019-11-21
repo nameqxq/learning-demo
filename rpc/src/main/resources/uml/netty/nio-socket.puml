@@ -68,25 +68,6 @@ CustomerInBoundChannelHandler -up--|> ChannelOutboundHandler
 '以上为Pipeline相关
 
 
-'以下为Channel相关
-interface Channel {
-}
-abstract class AbstractChannel {
-    DefaultChannelPipeline pipeline
-    Unsafe unsafe
-    EventLoop eventLoop
-}
-AbstractChannel -up..|> Channel
-class NioSocketChannel {
-}
-NioSocketChannel -up--|> AbstractChannel
-
-
-DefaultChannelPipeline -left--o "pipeline" AbstractChannel
-Channel -left--o "channel" DefaultChannelPipeline
-'以上为Channel相关
-
-
 '以下为 EventLoop 相关
 interface EventExecutorGroup{
     EventExecutor next();
@@ -156,6 +137,56 @@ class NioEventLoop {
 }
 note left of NioEventLoop: run方法中处理JDK-NIO\r\n读写连接等事件
 NioEventLoop -up--|> SingleThreadEventLoop
-EventLoop -right--o "eventLoop" AbstractChannel
+'EventLoop -right--o "eventLoop" AbstractChannel
 '以上为EventLoop相关
+
+
+'以下为Channel相关
+interface Channel {
+}
+abstract class AbstractChannel {
+    DefaultChannelPipeline pipeline
+    Unsafe unsafe
+    EventLoop eventLoop
+    AbstractUnsafe newUnsafe()
+}
+AbstractChannel -up..|> Channel
+abstract class AbstractNioChannel {
+    SelectableChannel ch
+    SelectionKey selectionKey
+}
+AbstractNioChannel -up--|> AbstractChannel
+abstract class AbstractNioByteChannel {
+}
+AbstractNioByteChannel -up--|> AbstractNioChannel
+class NioSocketChannel {
+}
+NioSocketChannel -up--|> AbstractNioByteChannel
+
+
+
+'DefaultChannelPipeline -left--o "pipeline" AbstractChannel
+'Channel -left--o "channel" DefaultChannelPipeline
+'以上为Channel相关
+
+
+'以下为Unsafe相关'
+interface Channel.Unsafe {
+}
+abstract class AbstractChannel.AbstractUnsafe {
+}
+AbstractChannel.AbstractUnsafe -up--|> Channel.Unsafe
+note left of Channel.Unsafe: netty中实际处理IO操作的组件\r\n用户代码不应该使用它
+interface AbstractNioChannel.NioUnsafe {
+}
+AbstractNioChannel.NioUnsafe -up--|> Channel.Unsafe
+abstract class AbstractNioChannel.AbstractNioUnsafe{
+}
+AbstractNioChannel.AbstractNioUnsafe -up..|> AbstractNioChannel.NioUnsafe
+AbstractNioChannel.AbstractNioUnsafe -up--|> AbstractChannel.AbstractUnsafe
+class AbstractNioByteChannel.NioByteUnsafe {
+}
+AbstractNioByteChannel.NioByteUnsafe -up--|> AbstractNioChannel.AbstractNioUnsafe
+
+'以上为Unsafe相关'
 @enduml
