@@ -227,4 +227,6 @@ note left of NioEventLoop: run方法中处理JDK-NIO\r\n读写连接等事件
 NioEventLoop -up--|> SingleThreadEventLoop
 EventLoop -right--o "eventLoop" AbstractChannel
 '以上为EventLoop相关
+
+note "小希子出品" as mark
 @enduml
