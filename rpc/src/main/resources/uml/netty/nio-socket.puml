@@ -1,73 +1,4 @@
 @startuml
-' 以下为Pipeline相关
-interface ChannelPipeline {
-}
-class DefaultChannelPipeline {
-    head: AbstractChannelHandlerContext
-    tail: AbstractChannelHandlerContext
-    channel: Channel
-}
-DefaultChannelPipeline -up..|> ChannelPipeline
-
-
-abstract class AbstractChannelHandlerContext {
-    AbstractChannelHandlerContext prev
-    AbstractChannelHandlerContext next
-    DefaultChannelPipeline pipeline
-    boolean inbound
-    boolean outbound
-    AbstractChannelHandlerContext findContextInbound()
-    AbstractChannelHandlerContext findContextOutbound()
-}
-DefaultChannelPipeline -right--o "pipeline" AbstractChannelHandlerContext
-
-class DefaultChannelHandlerContext {
-    ChannelHandler handler
-}
-DefaultChannelHandlerContext -up--|> AbstractChannelHandlerContext
-
-interface ChannelHandler {
-}
-ChannelHandler -down--o DefaultChannelHandlerContext
-
-interface ChannelOutboundHandler {
-}
-ChannelOutboundHandler -up--|> ChannelHandler
-interface ChannelInboundHandler {
-}
-ChannelInboundHandler -up--|> ChannelHandler
-class HeadContext {
-    boolean outbound: true
-    Unsafe unsafe
-    void bind(...)
-    void connect(...)
-}
-HeadContext -up--|> AbstractChannelHandlerContext
-HeadContext -down--|> ChannelInboundHandler
-HeadContext -down--|> ChannelOutboundHandler
-HeadContext -down--o "head" DefaultChannelPipeline
-HeadContext "next"-left-o DefaultChannelHandlerContext
-DefaultChannelHandlerContext "prev"-right-o HeadContext
-class TailContext {
-    boolean inbound: true
-    void channelRead()
-}
-TailContext -up--|> AbstractChannelHandlerContext
-TailContext -down--|> ChannelInboundHandler
-TailContext -down--|> ChannelOutboundHandler
-TailContext -down--o "tail" DefaultChannelPipeline
-DefaultChannelHandlerContext "next"-left-o TailContext
-TailContext "prev"-right-o DefaultChannelHandlerContext
-
-class CustomerInBoundChannelHandler {
-}
-CustomerOutBoundChannelHandler -up--|> ChannelInboundHandler
-class CustomerOutBoundChannelHandler {
-}
-CustomerInBoundChannelHandler -up--|> ChannelOutboundHandler
-'以上为Pipeline相关
-
-
 '以下为 EventLoop 相关
 interface EventExecutorGroup{
     EventExecutor next();
@@ -137,8 +68,80 @@ class NioEventLoop {
 }
 note left of NioEventLoop: run方法中处理JDK-NIO\r\n读写连接等事件
 NioEventLoop -up--|> SingleThreadEventLoop
-'EventLoop -right--o "eventLoop" AbstractChannel
+'EventLoop --o "eventLoop" AbstractChannel
 '以上为EventLoop相关
+
+
+' 以下为Pipeline相关
+interface ChannelPipeline {
+}
+class DefaultChannelPipeline {
+    AbstractChannelHandlerContext head
+    AbstractChannelHandlerContext tail
+    Channel channel
+}
+note top of DefaultChannelPipeline: 构造器中创建head和tail
+DefaultChannelPipeline -up..|> ChannelPipeline
+
+
+abstract class AbstractChannelHandlerContext {
+    AbstractChannelHandlerContext prev
+    AbstractChannelHandlerContext next
+    DefaultChannelPipeline pipeline
+    boolean inbound
+    boolean outbound
+    AbstractChannelHandlerContext findContextInbound()
+    AbstractChannelHandlerContext findContextOutbound()
+}
+DefaultChannelPipeline -left--o "pipeline" AbstractChannelHandlerContext
+
+class DefaultChannelHandlerContext {
+    ChannelHandler handler
+}
+DefaultChannelHandlerContext -up--|> AbstractChannelHandlerContext
+
+interface ChannelHandler {
+}
+ChannelHandler -down--o DefaultChannelHandlerContext
+
+interface ChannelOutboundHandler {
+}
+ChannelOutboundHandler -right--|> ChannelHandler
+interface ChannelInboundHandler {
+}
+ChannelInboundHandler -left--|> ChannelHandler
+class HeadContext {
+    boolean outbound: true
+    Unsafe unsafe
+    void bind(...)
+    void connect(...)
+    void write(...)
+    void flush(...)
+}
+HeadContext -up--|> AbstractChannelHandlerContext
+HeadContext -down--|> ChannelInboundHandler
+HeadContext -down--|> ChannelOutboundHandler
+HeadContext -down--o "head" DefaultChannelPipeline
+HeadContext "next"-left-o DefaultChannelHandlerContext
+DefaultChannelHandlerContext "prev"-right-o HeadContext
+class TailContext {
+    boolean inbound: true
+    void channelRead()
+}
+TailContext -up--|> AbstractChannelHandlerContext
+TailContext -down--|> ChannelInboundHandler
+TailContext -down--|> ChannelOutboundHandler
+TailContext -down--o "tail" DefaultChannelPipeline
+DefaultChannelHandlerContext "next"-left-o TailContext
+TailContext "prev"-right-o DefaultChannelHandlerContext
+
+class CustomerInBoundChannelHandler {
+}
+CustomerOutBoundChannelHandler -up--|> ChannelInboundHandler
+class CustomerOutBoundChannelHandler {
+}
+CustomerInBoundChannelHandler -up--|> ChannelOutboundHandler
+'以上为Pipeline相关
 
 
 '以下为Channel相关
@@ -149,12 +152,16 @@ abstract class AbstractChannel {
     Unsafe unsafe
     EventLoop eventLoop
     AbstractUnsafe newUnsafe()
+    void doRegister()
 }
+note top of AbstractChannel: 构造器中创建Unsafe和Pipeline实例
 AbstractChannel -up..|> Channel
 abstract class AbstractNioChannel {
     SelectableChannel ch
     SelectionKey selectionKey
+    void doRegister()
 }
+note bottom of AbstractNioChannel: doRegister方法将jdk-channel注册到了jdk-Selector上，\r\n并且将自身-netty-nio-channel对象作为att对象传递了\r\n进去，保证在eventLoop的jdk-Selector监听到读写事件\r\n之后，能拿到netty-channel对象
 AbstractNioChannel -up--|> AbstractChannel
 abstract class AbstractNioByteChannel {
 }
@@ -164,29 +171,60 @@ class NioSocketChannel {
 NioSocketChannel -up--|> AbstractNioByteChannel
 
 
-
-'DefaultChannelPipeline -left--o "pipeline" AbstractChannel
-'Channel -left--o "channel" DefaultChannelPipeline
+DefaultChannelPipeline -up-o "pipeline" AbstractChannel
+Channel -left--o "channel" DefaultChannelPipeline
 '以上为Channel相关
 
 
 '以下为Unsafe相关'
 interface Channel.Unsafe {
+    void register(...)
+    void bind(...)
+    void connect(...)
 }
+note top of Channel.Unsafe: netty中实际处理IO操作的组件\r\n用户代码不应该使用它\r\nregister方法将绑定Channel和EventLoop
 abstract class AbstractChannel.AbstractUnsafe {
+    ChannelOutboundBuffer outboundBuffer
 }
 AbstractChannel.AbstractUnsafe -up--|> Channel.Unsafe
-note left of Channel.Unsafe: netty中实际处理IO操作的组件\r\n用户代码不应该使用它
 interface AbstractNioChannel.NioUnsafe {
 }
 AbstractNioChannel.NioUnsafe -up--|> Channel.Unsafe
 abstract class AbstractNioChannel.AbstractNioUnsafe{
 }
+note left of AbstractNioChannel.AbstractNioUnsafe: jdk-selector监听到读事件时，\r\n通过该类的方法进行处理，在其中\r\n会将用户事件流入Pipeline，写事件\r\n从Pipeline流出最终通过它写出
 AbstractNioChannel.AbstractNioUnsafe -up..|> AbstractNioChannel.NioUnsafe
 AbstractNioChannel.AbstractNioUnsafe -up--|> AbstractChannel.AbstractUnsafe
 class AbstractNioByteChannel.NioByteUnsafe {
 }
 AbstractNioByteChannel.NioByteUnsafe -up--|> AbstractNioChannel.AbstractNioUnsafe
 
+Channel.Unsafe -down-o AbstractChannel
 '以上为Unsafe相关'
+
+
+'以下为Bootstrap相关'
+abstract class AbstractBootstrap {
+    EventLoopGroup group
+    ChannelFactory channelFactory
+    ChannelHandler handler
+    ChannelFuture bind(...)
+}
+class Bootstrap {
+    ChannelFuture connect(...)
+}
+Bootstrap -up--|> AbstractBootstrap
+note "客户端启动类, 客户端通过Bootstrap.connect方法，\r\n将channel、eventLoop、ChannelPipeline等模块\r\n相继启动并关联起来" as Bootstrap.connect
+Bootstrap.connect -up--|> Bootstrap
+interface ChannelFactory {
+    Channel newChannel()
+}
+ChannelFactory -right-o AbstractBootstrap
+class ReflectiveChannelFactory {
+}
+note bottom of ReflectiveChannelFactory: 通过传入的Channel.class\r\n进行反射调用无参构造器构造实例
+ReflectiveChannelFactory -up..|> ChannelFactory
+
+ChannelFactory "newChannel()" -right-> Channel
+'以上为Bootstrap相关'
 @enduml
