@@ -1,76 +1,4 @@
 @startuml
-'以下为 EventLoop 相关
-interface EventExecutorGroup{
-    EventExecutor next();
-}
-interface EventExecutor{
-    EventExecutor next();
-    boolean inEventLoop()
-    boolean inEventLoop(Thread)
-}
-EventExecutor -up--|> EventExecutorGroup
-interface OrderedEventExecutor{
-}
-note right of OrderedEventExecutor: 标记接口
-OrderedEventExecutor -up--|> EventExecutor
-interface EventLoopGroup{
-    EventLoop next()
-}
-EventLoopGroup -up--|> EventExecutorGroup
-interface EventLoop{
-    EventLoopGroup parent()
-}
-EventLoop -up--|> EventLoopGroup
-abstract class MultithreadEventExecutorGroup {
-    EventExecutor[] children
-    EventExecutorChooserFactory.EventExecutorChooser chooser
-    EventExecutor newChild(...)
-    EventExecutor next()
-}
-note bottom of MultithreadEventExecutorGroup: 初始化的时候，调用newChild\r\n创建了eventLoop填充了children
-MultithreadEventExecutorGroup -up..|> EventExecutorGroup
-EventExecutor -right--o MultithreadEventExecutorGroup
-abstract class MultithreadEventLoopGroup {
-}
-MultithreadEventLoopGroup -up--|> MultithreadEventExecutorGroup
-MultithreadEventLoopGroup -up..|> EventLoopGroup
-class NioEventLoopGroup {
-    EventLoop newChild(...): NioEventLoop
-}
-note bottom of NioEventLoopGroup: newChild 创建NioEventLoop
-NioEventLoopGroup -up--|> MultithreadEventLoopGroup
-
-abstract class AbstractEventExecutor {
-    EventExecutorGroup parent
-}
-AbstractEventExecutor -up..|> EventExecutor
-class SingleThreadEventExecutor{
-    Queue<Runnable> taskQueue
-    Thread thread
-    int state
-    Executor executor:
-    void execute(Runnable)
-    void doStartThread()
-    void run()
-}
-note right of SingleThreadEventExecutor: 所有的任务都在一个线程中执行\r\n执行器默认为ThreadPerTaskExecutor\r\n第一次向该执行器提交任务(execute)时\r\n将会启动一个线程(doStartThread)\r\n并且调用run方法
-SingleThreadEventExecutor -up..|> OrderedEventExecutor
-SingleThreadEventExecutor -up--|> AbstractEventExecutor
-class SingleThreadEventLoop{
-}
-SingleThreadEventLoop -up--|> SingleThreadEventExecutor
-SingleThreadEventLoop -up..|> EventLoop
-
-class NioEventLoop {
-    Selector selector
-    SelectorProvider provider
-    void run()
-}
-note left of NioEventLoop: run方法中处理JDK-NIO\r\n读写连接等事件
-NioEventLoop -up--|> SingleThreadEventLoop
-'EventLoop --o "eventLoop" AbstractChannel
-'以上为EventLoop相关
-
 
 ' 以下为Pipeline相关
 interface ChannelPipeline {
@@ -161,7 +89,7 @@ abstract class AbstractNioChannel {
     SelectionKey selectionKey
     void doRegister()
 }
-note bottom of AbstractNioChannel: doRegister方法将jdk-channel注册到了jdk-Selector上，\r\n并且将自身-netty-nio-channel对象作为att对象传递了\r\n进去，保证在eventLoop的jdk-Selector监听到读写事件\r\n之后，能拿到netty-channel对象
+note top of AbstractNioChannel: doRegister方法将jdk-channel注册到了jdk-Selector上，\r\n并且将自身-netty-nio-channel对象作为att对象传递了\r\n进去，保证在eventLoop的jdk-Selector监听到读写事件\r\n之后，能拿到netty-channel对象
 AbstractNioChannel -up--|> AbstractChannel
 abstract class AbstractNioByteChannel {
 }
@@ -227,4 +155,76 @@ ReflectiveChannelFactory -up..|> ChannelFactory
 
 ChannelFactory "newChannel()" -right-> Channel
 '以上为Bootstrap相关'
+
+'以下为 EventLoop 相关
+interface EventExecutorGroup{
+    EventExecutor next();
+}
+interface EventExecutor{
+    EventExecutor next();
+    boolean inEventLoop()
+    boolean inEventLoop(Thread)
+}
+EventExecutor -left--|> EventExecutorGroup
+interface OrderedEventExecutor{
+}
+note right of OrderedEventExecutor: 标记接口
+OrderedEventExecutor -up--|> EventExecutor
+interface EventLoopGroup{
+    EventLoop next()
+}
+EventLoopGroup -right--|> EventExecutorGroup
+interface EventLoop{
+    EventLoopGroup parent()
+}
+EventLoop -up--|> EventLoopGroup
+abstract class MultithreadEventExecutorGroup {
+    EventExecutor[] children
+    EventExecutorChooserFactory.EventExecutorChooser chooser
+    EventExecutor newChild(...)
+    EventExecutor next()
+}
+note top of MultithreadEventExecutorGroup: 初始化的时候，调用newChild\r\n创建了eventLoop填充了children
+MultithreadEventExecutorGroup -up..|> EventExecutorGroup
+EventExecutor -down--o MultithreadEventExecutorGroup
+abstract class MultithreadEventLoopGroup {
+}
+MultithreadEventLoopGroup -up--|> MultithreadEventExecutorGroup
+MultithreadEventLoopGroup -up..|> EventLoopGroup
+class NioEventLoopGroup {
+    EventLoop newChild(...): NioEventLoop
+}
+note bottom of NioEventLoopGroup: newChild 创建NioEventLoop
+NioEventLoopGroup -up--|> MultithreadEventLoopGroup
+
+abstract class AbstractEventExecutor {
+    EventExecutorGroup parent
+}
+AbstractEventExecutor -up..|> EventExecutor
+class SingleThreadEventExecutor{
+    Queue<Runnable> taskQueue
+    Thread thread
+    int state
+    Executor executor:
+    void execute(Runnable)
+    void doStartThread()
+    void run()
+}
+note right of SingleThreadEventExecutor: 所有的任务都在一个线程中执行\r\n执行器默认为ThreadPerTaskExecutor\r\n第一次向该执行器提交任务(execute)时\r\n将会启动一个线程(doStartThread)\r\n并且调用run方法
+SingleThreadEventExecutor -up..|> OrderedEventExecutor
+SingleThreadEventExecutor -up--|> AbstractEventExecutor
+class SingleThreadEventLoop{
+}
+SingleThreadEventLoop -up--|> SingleThreadEventExecutor
+SingleThreadEventLoop -up..|> EventLoop
+
+class NioEventLoop {
+    Selector selector
+    SelectorProvider provider
+    void run()
+}
+note left of NioEventLoop: run方法中处理JDK-NIO\r\n读写连接等事件
+NioEventLoop -up--|> SingleThreadEventLoop
+EventLoop -right--o "eventLoop" AbstractChannel
+'以上为EventLoop相关
 @enduml
